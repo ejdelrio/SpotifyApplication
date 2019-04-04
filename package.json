@@ -1,0 +1,9 @@
+{
+  "name": "spotify-application",
+  "version": "0.0.0",
+  "description": "SpotifyApplication",
+  "main": "app.js",
+  "author": {
+    "name": ""
+  }
+}
