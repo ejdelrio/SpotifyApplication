@@ -29,10 +29,23 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="app.js" />
+    <Compile Include="ThirdPartySessionManagement\PandoraSession.js">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ThirdPartySessionManagement\Session.js">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ThirdPartySessionManagement\SessionManager.js">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ThirdPartySessionManagement\SpotifySession.js">
+      <SubType>Code</SubType>
+    </Compile>
     <Content Include="package.json" />
     <Content Include="README.md" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="ThirdPartySessionManagement\" />
     <Folder Include="Util\" />
     <Folder Include="Operations\" />
   </ItemGroup>
