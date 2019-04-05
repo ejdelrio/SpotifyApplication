@@ -4,6 +4,9 @@
   "description": "SpotifyApplication",
   "main": "app.js",
   "author": {
-    "name": ""
+    "name": "Edwin Del Rio"
+  },
+  "dependencies": {
+    "express": "^4.16.4"
   }
 }
