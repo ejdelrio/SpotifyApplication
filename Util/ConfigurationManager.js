@@ -21,13 +21,17 @@ class ConfigurationManager
     {
         CommonWorkItems.ValidateType(value, String);
 
-        if (!CommonWorkItems.IsStringNullOrWhiteSpace(value) &&
-            !CommonWorkItems.IsStringNullOrWhiteSpace(process.env[value]))
+        if (CommonWorkItems.IsStringNullOrWhiteSpace(value))
+        {
+            throw new ReferenceError("A null or undefined value was used retrieve a configuration setting.");
+        }
+
+        if (!CommonWorkItems.IsStringNullOrWhiteSpace(process.env[value]))
         {
             return process.env.value;
         }
 
-        throw new Error("Invalid configuration setting");
+        throw new Error(`The configuration settings are missing the value ${value}`);
     }
 }
 

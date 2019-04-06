@@ -1,5 +1,6 @@
 ﻿"use strict";
 
+const request = require("request");
 const Session = require("./Session");
 const ConfigurationManager = require("../Util/ConfigurationManager");
 const refreshTokenConfigurationName = "SPOTIFY_REFRESH_TOKEN";
@@ -42,8 +43,8 @@ function WaitForOperationCompletness(lockValue)
             }
 
             currentRetryCount++;
-
-        }, 2000); // Wait 2 seconds before checking again
+        },
+        2000); // Wait 2 seconds before checking again
     });
 }
 
