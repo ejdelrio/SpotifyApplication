@@ -53,16 +53,18 @@ class CommonWorkItems
         }
 
         if (expectedType === String &&
-            !(typeof paramter !== "string" ||
-            paramter instanceof String))
+            (typeof paramter === "string" ||
+                paramter instanceof String))
         {
-            throw exception;
+            return;
         }
 
-        if (paramter instanceof expectedType !== true)
+        if (paramter instanceof expectedType === true)
         {
-            throw exception;
+            return;
         }
+
+        throw exception;
     }
 }
 

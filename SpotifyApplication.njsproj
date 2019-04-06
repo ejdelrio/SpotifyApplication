@@ -49,6 +49,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Content Include=".env" />
+    <Content Include="Operations\OperationLock.js">
+      <SubType>Code</SubType>
+    </Content>
     <Content Include="package.json" />
     <Content Include="README.md" />
   </ItemGroup>
