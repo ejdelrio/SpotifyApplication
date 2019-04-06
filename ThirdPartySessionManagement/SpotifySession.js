@@ -19,9 +19,9 @@ var lastValidityCheck;
  */
 class SpotifySession extends Session
 {
-    constructor(_refreshToken)
+    constructor()
     {
-        super();
+        super(SpotifySession.constructor.name);
         refreshToken = _refreshToken;
     }
 
@@ -35,11 +35,10 @@ class SpotifySession extends Session
 
     }
 
-
     VerifyAccessTokenIsStillValid()
     {
 
     }
 }
 
-module.exports = new SpotifySession();
+module.exports = Object.freeze(new SpotifySession());

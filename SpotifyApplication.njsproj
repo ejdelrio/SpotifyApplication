@@ -41,6 +41,7 @@
     <Compile Include="ThirdPartySessionManagement\SpotifySession.js">
       <SubType>Code</SubType>
     </Compile>
+    <Content Include=".env" />
     <Content Include="package.json" />
     <Content Include="README.md" />
   </ItemGroup>

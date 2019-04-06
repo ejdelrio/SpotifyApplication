@@ -2,9 +2,12 @@
 
 const Session = require("./Session");
 
-class PandoraSession
+class PandoraSession extends Session
 {
-
+    constructor()
+    {
+        super(PandoraSession.constructor.name);
+    }
 }
 
-module.exports = new PandoraSession();
+module.exports = Object.freeze(new PandoraSession());
