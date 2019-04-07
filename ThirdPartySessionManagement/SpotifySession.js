@@ -77,6 +77,17 @@ function HandleRefreshTokenResponse(resolve, reject)
         return reject(new Error("The remote service returned an unexpected response."));
     };
 }
+
+function RequestNewAccessToken()
+{
+    if (currentRefreshOperation !== null && currentRefreshOperation !== undefined)
+    {
+        return currentRefreshOperation;
+    }
+
+    currentRefreshOperation = new Promise((resolve, reject) => request.post(GenerateRequestBody(), HandleRefreshTokenResponse(resolve, reject)));
+    return currentRefreshOperation;
+}
 // END private functions
 //==============================================
 
@@ -118,16 +129,16 @@ class SpotifySession extends Session
         return secondsSinceLastRefresh >= currentTokenLifespan;
     }
 
-    RequestNewAccessToken()
+    PrevalidateApiCall()
     {
-        if (currentRefreshOperation !== null && currentRefreshOperation !== undefined)
+        if (this.IsTokenStillValid)
         {
-            return currentRefreshOperation;
+            return Promise.resolve(accessToken);
         }
 
-        currentRefreshOperation = new Promise((resolve, reject) => request.post(GenerateRequestBody(), HandleRefreshTokenResponse(resolve, reject)));
-        return currentRefreshOperation;
+        return RequestNewAccessToken();
     }
+
 }
 
 module.exports = Object.freeze(new SpotifySession());
