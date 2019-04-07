@@ -2,7 +2,6 @@
 
 const request = require("request");
 const Session = require("./Session");
-const OperationLock = require("../Operations/OperationLock");
 const ConfigurationManager = require("../Util/ConfigurationManager");
 const spotifyAddress = "https://accounts.spotify.com/api/token";
 const refreshTokenConfigurationName = "SPOTIFY_REFRESH_TOKEN";
@@ -16,45 +15,14 @@ var refreshToken;
 var clientId;
 var clientSecret;
 var lastRefresh;
-var lastValidityCheck;
-var refreshLock;
-var validationLock;
+var currentRefreshOperation;
+var currentValidationOperation;
+var currentTokenLifespan;
 // End private variables
 //=========================================================
 
 //=========================================================
 // Private functions
-
-// Waits for a lock to be released before returning a resolved project. Rejects if the lock is not released in 10 seconds
-function WaitForOperationCompletness(lockValue)
-{
-    const maximumRetries = 5;
-    var currentRetryCount;
-    var intervalId;
-
-    return new Promise((resolve, reject) =>
-    {
-        currentRetryCount = 1;
-        intervalId = setInterval(() =>
-        {
-            if (currentRetryCount >= maximumRetries)
-            {
-                clearInterval(intervalId);
-                reject("Wait for spotify API response timed out.");
-            }
-
-            if (!lockValue.isLocked)
-            {
-                clearInterval(intervalId);
-                resolve();
-            }
-
-            currentRetryCount++;
-        },
-        2000); // Wait 2 seconds before checking again
-    });
-}
-
 function GenerateRequestBody()
 {
     var requestBody;
@@ -79,34 +47,36 @@ function GenerateRequestBody()
     return requestBody;
 }
 
-function HandleRemoteServiceResponse(resolve, reject)
+function HandleRefreshTokenResponse(resolve, reject)
 {
     return function (error, response, body)
     {
         if (error)
         {
-            refreshLock.isLocked = false;
+            currentRefreshOperation = null;
             return reject(error);
         }
 
         if (body.error)
         {
-            refreshLock.isLocked = false;
-            return reject(body.error)
+            currentRefreshOperation = null;
+            return reject(body.error);
         }
 
         if (response.statusCode === 200)
         {
             accessToken = body.access_token;
-            refreshLock.isLocked = false;
+            currentTokenLifespan = body.expires_in;
             lastRefresh = Date.now();
+            currentRefreshOperation = null;
+
             return resolve(accessToken);
         }
 
+        currentRefreshOperation = null;
         return reject(new Error("The remote service returned an unexpected response."));
     };
 }
-
 // END private functions
 //==============================================
 
@@ -125,49 +95,38 @@ class SpotifySession extends Session
         refreshToken = ConfigurationManager.GetValueWithThrow(refreshTokenConfigurationName);
         clientId = ConfigurationManager.GetValueWithThrow(clientIdConfigurationName);
         clientSecret = ConfigurationManager.GetValueWithThrow(secretConfigurationName);
-        refreshLock = new OperationLock();
-        validationLock = new OperationLock();
+        currentRefreshOperation = null;
+        currentValidationOperation = null;
     }
 
     // Access token that allows API calls to Spotify API.
-    get AccessToken() { return accessToken; }
-
-    // If we are currently refreshing, we will not trigger another refresh
-    get IsCurrentlyRefreshing() { return refreshLock; }
-
-    // If we are checking the validity of our current token, we'll lock this value to prevent multiple validation calls
-    get IsCurrentlyValidating() { return validationLoc.isLockedk; }
+    get AccessToken() { return new String(accessToken); }
 
     // Lock to prevent multiple refreshes at the same time
-    get IsCurrentlyRefreshing() { return refreshLock.isLocked; }
+    get IsCurrentlyRefreshing() { return currentRefreshOperation !== null; }
 
-    // Waits for the refresh lock to be released. Returns a promise
-    WaitForRefreshComplete()
+    get IsTokenStillValid()
     {
-        return WaitForOperationCompletness(refreshLock);
-    }
+        var secondsSinceLastRefresh;
 
-    // Waits for the validation lock to be released. Returns a promise
-    WaitForValidationToComplete()
-    {
-        return WaitForOperationCompletness(validationLock);
+        if (this.IsStringNullOrWhiteSpace(accessToken))
+        {
+            return false;
+        }
+
+        secondsSinceLastRefresh = Math.abs(Date.now() - lastRefresh) / 1000;
+        return secondsSinceLastRefresh >= currentTokenLifespan;
     }
 
     RequestNewAccessToken()
     {
-        return new Promise((resolve, reject) =>
+        if (currentRefreshOperation !== null && currentRefreshOperation !== undefined)
         {
-            refreshLock.isLocked = true;
-            request.post(GenerateRequestBody(), HandleRemoteServiceResponse(resolve, reject));
-        });
-    }
-
-    VerifyAccessTokenIsStillValid()
-    {
-        if (this.IsStringNullOrWhiteSpace(accessToken))
-        {
-            return this.RequestNewAccessToken();
+            return currentRefreshOperation;
         }
+
+        currentRefreshOperation = new Promise((resolve, reject) => request.post(GenerateRequestBody(), HandleRefreshTokenResponse(resolve, reject)));
+        return currentRefreshOperation;
     }
 }
 
