@@ -74,6 +74,11 @@ function HandleException(request, response, next, exception, operationInstance)
 // End private methods
 // ===============================================
 
+/*
+ * Description :
+ *  Recieves a playlist ID as a parameter in the endpoint url string. Uses the ID to make a call 
+ *  to Spotify's api. This API provides a token for authentication with spotify API. That token is validated before this call
+ */
 class GetSpotifyPlaylistOperation extends Operation
 {
     constructor()
