@@ -28,7 +28,7 @@ class ConfigurationManager
 
         if (!CommonWorkItems.IsStringNullOrWhiteSpace(process.env[value]))
         {
-            return process.env.value;
+            return process.env[value];
         }
 
         throw new Error(`The configuration settings are missing the value ${value}`);
