@@ -29,6 +29,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="app.js" />
+    <Compile Include="Operations\GetSpotifyPlaylistOperation.js">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Operations\Operation.js" />
     <Compile Include="ThirdPartySessionManagement\PandoraSession.js">
       <SubType>Code</SubType>
