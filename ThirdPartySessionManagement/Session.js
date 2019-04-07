@@ -9,11 +9,11 @@ class Session
         this.sessionName = sessionName;
     }
 
-    IsStringNullOrWhiteSpace(str) { return CommonwWorkItems.IsStringNullOrWhiteSpace(str); }
+    IsStringNullOrWhiteSpace(str) { return CommonWorkItems.IsStringNullOrWhiteSpace(str); }
 
-    ValidateType(parameter, expectedType) { return CommonwWorkItems.ValidateType(parameter, expectedType); }
+    ValidateType(parameter, expectedType) { return CommonWorkItems.ValidateType(parameter, expectedType); }
 
-    ValidateIsNotNull(parameter, parameterName = "") { return CommonwWorkItems.ValidateIsNotNull(parameter, parameterName); }
+    ValidateIsNotNull(parameter, parameterName = "") { return CommonWorkItems.ValidateIsNotNull(parameter, parameterName); }
 }
 
 module.exports = Session;

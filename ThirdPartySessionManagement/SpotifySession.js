@@ -4,7 +4,6 @@ const request = require("request");
 const Session = require("./Session");
 const ConfigurationManager = require("../Util/ConfigurationManager");
 const spotifyAddress = "https://accounts.spotify.com/api/token";
-const refreshTokenConfigurationName = "SPOTIFY_REFRESH_TOKEN";
 const clientIdConfigurationName = "SPOTIFY_CLIENT_ID";
 const secretConfigurationName = "SPOTIFY_CLIENT_SECRET";
 
@@ -25,26 +24,16 @@ var currentTokenLifespan;
 // Private functions
 function GenerateRequestBody()
 {
-    var requestBody;
-    var header;
-    var form;
-    var base64EncodedSecret;
+    var base64EncodedSecret = new Buffer(`${clientId}:${clientSecret}`).toString("base64");
 
-    base64EncodedSecret = new Buffer(`${clientId}:${clientSecret}`);
-    header = new Object();
-    header.Authorization = base64EncodedSecret;
-
-    form = new Object();
-    form.grant_type = "refresh_token";
-    form.refresh_token = refreshToken;
-
-    requestBody = new Object();
-    requestBody.header = header;
-    requestBody.form = form;
-    requestBody.json = true;
-    requestBody.url = spotifyAddress;
-
-    return requestBody;
+    return {
+        url: spotifyAddress,
+        headers: { 'Authorization': 'Basic ' + base64EncodedSecret },
+        form: {
+            grant_type: 'client_credentials',
+        },
+        json: true
+    };
 }
 
 function HandleRefreshTokenResponse(resolve, reject)
@@ -103,7 +92,6 @@ class SpotifySession extends Session
     constructor()
     {
         super(SpotifySession.constructor.name);
-        refreshToken = ConfigurationManager.GetValueWithThrow(refreshTokenConfigurationName);
         clientId = ConfigurationManager.GetValueWithThrow(clientIdConfigurationName);
         clientSecret = ConfigurationManager.GetValueWithThrow(secretConfigurationName);
         currentRefreshOperation = null;

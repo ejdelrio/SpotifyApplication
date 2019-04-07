@@ -11,7 +11,7 @@ const spotifyApiEndpoint = "https://api.spotify.com/v1/playlists/";
 
 function ValidateRequestParameters(request, operationInstance)
 {
-    operationInstance.ValidateIsNotNull(request);
+    operationInstance.ValidateIsNotNull(request, "request");
 
     if (operationInstance.IsStringNullOrWhiteSpace(request.params.playlistId))
     {
@@ -21,13 +21,11 @@ function ValidateRequestParameters(request, operationInstance)
 
 function GenerateRequestBody(token, endpoint)
 {
-    var requestBody;
-
-    requestBody = new Object();
-    requestBody.json = true;
-    requestBody.url = endpoint;
-
-    return requestBody;
+    return {
+        url: endpoint,
+        headers: { Authorization: `Bearer ${token}` },
+        json : true
+    };
 }
 
 function ExternalResponseHandler(resolve, reject)
@@ -37,6 +35,11 @@ function ExternalResponseHandler(resolve, reject)
         if (error)
         {
             return reject(error);
+        }
+
+        if (body.error)
+        {
+            reject(body.error);
         }
 
         if (response.statusCode === 200)
@@ -50,8 +53,8 @@ function ExternalResponseHandler(resolve, reject)
 
 function SendExternalRequest(req, response, next, token, operationInstance)
 {
-    var playlistId = request.params.playlistId;
-    var apiQueryString = `${spotifyApiEndpoint}${playlistId}}`;
+    var playlistId = req.params.playlistId;
+    var apiQueryString = `${spotifyApiEndpoint}${playlistId}`;
 
     return new Promise((resolve, reject) =>
     {
@@ -63,12 +66,19 @@ function SendExternalRequest(req, response, next, token, operationInstance)
 
 function HandleResponseToCaller(request, response, next, data)
 {
-
+    response.send(data);
+    response.statusCode = 200;
+    response.end();
+    next();
 }
 
 function HandleException(request, response, next, exception, operationInstance)
 {
-
+    response.statusCode = 400;
+    response.send(exception.message);
+    response.error = exception;
+    response.end();
+    next();
 }
 
 // End private methods
@@ -84,9 +94,10 @@ class GetSpotifyPlaylistOperation extends Operation
     constructor()
     {
         super();
+        this.Invoke = this.Invoke.bind(this);
     }
 
-    get Endpoint() { return new String(operationEndpoint); }
+    static get Endpoint() { return new String(operationEndpoint); }
 
     Invoke(request, response, next)
     {
@@ -104,10 +115,10 @@ class GetSpotifyPlaylistOperation extends Operation
         }
 
         SessionManager.SpotifySession.PrevalidateApiCall()
-            .then(token => SendExternalRequest(request, response, token, this))
+            .then(token => SendExternalRequest(request, response, next, token, this))
             .then(data => HandleResponseToCaller(request, response, next, data))
             .catch(exception => HandleException(request, response, next, exception, this));
     }
 }
 
-module.exports = GetSpotifyPlaylistOperation();
+module.exports = GetSpotifyPlaylistOperation;
